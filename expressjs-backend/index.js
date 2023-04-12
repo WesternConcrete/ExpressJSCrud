@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const port = 8000;
-const users = { 
+let users = { 
     users_list :
     [
        { 
@@ -56,6 +56,13 @@ function addUser(user){
     users['users_list'].push(user);
 }
 
+
+function deleteUser(id){
+    users = users['users_list'].filter(user => {
+        return user.id !== id
+    })
+}
+
 app.get('/', (req, res) => {
     res.send('Hello World!');
 });
@@ -77,9 +84,9 @@ app.get('/users/:id', (req, res) => {
 
 app.get('/users', (req, res) => {
     const name = req.query.name;
-    const job = req.query.name;
+    const job = req.query.job;
 
-    if (name != undefined){
+    if (name != undefined || job != undefined){
         let result = findUserByNameAndJob(name, job);
         result = {users_list: result};
         res.send(result);
@@ -95,9 +102,9 @@ app.post('/users', (req, res) => {
     res.status(200).end();
 });
 
-app.delete('/users', (req, res) => {
-    const userToDelete = req.body;
-    addUser(userToDelete);
+app.delete('/users/:id', (req, res) => {
+    const id = req.params['id']; //or req.params.id
+    deleteUser(id)
     res.status(200).end();
 });
 
