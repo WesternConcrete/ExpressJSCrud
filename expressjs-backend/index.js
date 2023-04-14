@@ -1,3 +1,4 @@
+const cors = require('cors');
 const express = require('express');
 const app = express();
 const port = 8000;
@@ -31,6 +32,7 @@ let users = {
        }
     ]
  }
+ app.use(cors());
  app.use(express.json());
 
 
@@ -53,14 +55,22 @@ function findUserById(id) {
 }
 
 function addUser(user){
+    user['id'] = Math.random().toString(36).substr(2, 9);
     users['users_list'].push(user);
+    return user
 }
 
 
 function deleteUser(id){
-    users = users['users_list'].filter(user => {
+    const prev_user_length = users['users_list'].length
+    users['users_list'] = users['users_list'].filter(user => {
         return user.id !== id
     })
+    if(prev_user_length - 1 == users['users_list'].length) {
+        return true
+    } else {
+        return false
+    }
 }
 
 app.get('/', (req, res) => {
@@ -98,14 +108,18 @@ app.get('/users', (req, res) => {
 
 app.post('/users', (req, res) => {
     const userToAdd = req.body;
-    addUser(userToAdd);
-    res.status(200).end();
+    const new_user = addUser(userToAdd);
+    res.status(201).send(new_user);
 });
 
 app.delete('/users/:id', (req, res) => {
     const id = req.params['id']; //or req.params.id
-    deleteUser(id)
-    res.status(200).end();
+    if(deleteUser(id)) {
+         res.status(204).end();
+    } else {
+         res.status(404).end();
+    }
+   
 });
 
 app.listen(port, () => {
